@@ -1,0 +1,221 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Система администрирования заказов
+  contact: 
+    name: ArtyomBorisov
+
+tags:
+  - name: "Продукты"
+    description: "Информация о продуктах интернет-магазина"
+  - name: "Заказы"
+    description: "Информация о заказах интернет-магазина"
+
+paths:
+  /product:
+    post:
+      tags:
+        - "Продукты"
+      summary: "Добавить новый продукт"
+      requestBody:
+        $ref: '#/components/requestBodies/CreatingProduct'
+      responses:
+        '201':
+          description: "Продукт добавлен"
+        '400':
+          $ref: '#/components/responses/Bad_Request'
+        '500':
+          $ref: '#/components/responses/Internal_Server_Error'
+          
+    get:
+      tags:
+        - "Продукты"
+      summary: "Получить список всех продуктов"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductResponse'
+        '500':
+          $ref: '#/components/responses/Internal_Server_Error'
+          
+  /product/{name}:
+    put:
+      tags:
+        - "Продукты"
+      summary: "Редактировать информацию о продукте"
+      parameters:
+        - in: path
+          name: name
+          description: "Название продукта"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/UpdatingProduct'
+      responses:
+        '200':
+          description: "Продукт успешно изменён"
+        '400':
+          $ref: '#/components/responses/Bad_Request'
+        '500':
+          $ref: '#/components/responses/Internal_Server_Error'
+          
+    delete:
+      tags:
+        - "Продукты"
+      summary: "Удалить продукт"
+      parameters:
+        - in: path
+          name: name
+          description: "Название продукта"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Продукт успешно удалён"
+        '400':
+          $ref: '#/components/responses/Bad_Request'
+        '500':
+          $ref: '#/components/responses/Internal_Server_Error'
+          
+  /order:
+    post:
+      tags:
+        - "Заказы"
+      summary: "Добавить новый заказ"
+      requestBody:
+        $ref: '#/components/requestBodies/CreatingOrder'
+      responses:
+        '201':
+          description: "Заказ добавлен"
+        '400':
+          $ref: '#/components/responses/Bad_Request'
+        '500':
+          $ref: '#/components/responses/Internal_Server_Error'
+    
+    get:
+      tags:
+        - "Заказы"
+      summary: "Получить список всех заказов"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '500':
+          $ref: '#/components/responses/Internal_Server_Error'
+
+components:
+  requestBodies:
+    CreatingProduct:
+      description: Тело для создания продукта
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProductRequestCreate'
+            
+    UpdatingProduct:
+      description: Тело обновлённого продукта
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProductRequestUpdate'
+            
+    CreatingOrder:
+      description: Тело для создания заказа
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Order'
+            
+  responses:
+    Bad_Request:
+      description: Запрос некорректен. Сервер не может обработать запрос
+      content:
+        application/json:
+          schema:
+            example: 
+              logref: "error"
+              message: "Запрос содержит некорретные данные. Измените запрос и отправьте его ещё раз"
+              
+    Internal_Server_Error:
+      description: Внутренняя ошибка сервера. Сервер не смог корректно обработать запрос
+      content:
+        applicaion/json:
+          schema:
+            example:
+              logref: "error"
+              message: "Сервер не смог корректно обработать запрос. Пожалуйста обратитесь к администратору"
+              
+  schemas:
+    ProductRequestCreate:
+      type: object
+      description: Создаваемый продукт
+      properties: 
+        name:
+          type: string
+          description: "Наименование продукта"
+        price:
+          type: number
+          description: "Цена продукта"
+          
+    ProductRequestUpdate:
+      type: object
+      description: Обновляемый продукт
+      properties: 
+        name:
+          type: string
+          description: "Наименование продукта"
+        price:
+          type: number
+          description: "Цена продукта"
+        status:
+          type: string
+          description: "Статус продукта"
+          enum:
+            - "OUT_OF_STOCK"
+            - "IN_STOCK"
+            - "RUNNING_LOW"
+            
+    ProductResponse:
+      type: object
+      description: Продукт
+      properties:
+        name:
+          type: string
+          description: "Наименование продукта"
+        price:
+          type: number
+          description: "Цена продукта"
+        amountOrders:
+          type: number
+          description: "Количество заказов продукта"
+          
+    Order:
+      type: object
+      description: Заказ
+      properties:
+        user_id:
+          type: number
+          description: "id заказчика"
+        status:
+          type: string
+          description: "Статус заказа"
+        products:
+          type: object
+          additionalProperties: 
+            type: number
+    
